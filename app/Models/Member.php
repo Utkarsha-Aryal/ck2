@@ -86,13 +86,3 @@ class Member extends Model
     }
 
 }
-
-
-    
-
-
-
-    
-
-
-

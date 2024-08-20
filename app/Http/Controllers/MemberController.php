@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 
 class MemberController extends Controller
 {
+    protected $queryMessage = 'An error occurred while querying the database.';
+
     public function index(){
         return view('index');
     }
@@ -95,21 +97,7 @@ class MemberController extends Controller
         return response()->json(['type' => $type, 'message' => $message]);
     }
 
-    public function aboutEmploye(Request $request)
-    {
-        try {
-            $id = $request->input('id');
-            $data = Member::getData($id);
-
-            if (!$data) {
-                throw new Exception("Data not found");
-            }
-
-            return response()->json($data);
-        } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 404);
-        }
-    }
+    
 
     public function delete(Request $request)
     {
@@ -135,6 +123,34 @@ class MemberController extends Controller
         }
 
         return response()->json(['type' => $type, 'message' => $message,]);
+    }
+
+    public function form(Request $request)
+    {
+        try {
+            $post = $request->all();
+            $prevPost = [];
+            if (!empty($post['id'])) {
+                $prevPost = Member::where('id', $post['id'])
+                    ->where('status', 'Y')
+                    ->first();
+                if (!$prevPost) {
+                    throw new Exception("Couldn't found details.", 1);
+                }
+            }
+            $data = [
+                'prevPost' => $prevPost
+            ];
+            $data['type'] = 'success';
+            $data['message'] = 'Successfully get data.';
+        } catch (QueryException $e) {
+            $data['type'] = 'error';
+            $data['message'] = $this->queryMessage;
+        } catch (Exception $e) {
+            $data['type'] = 'error';
+            $data['message'] = $e->getMessage();
+        }
+        return view('form', $data);
     }
 
 }
